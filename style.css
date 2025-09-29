@@ -1,0 +1,158 @@
+/* style.css — Pediatric OT SOAP Note Generator */
+
+:root {
+  --bg: #fbfcfd;
+  --card: #ffffff;
+  --accent: #0b76d1;
+  --muted: #6b7280;
+  --border: #e6e9ee;
+  --maxwidth: 900px;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial;
+  background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+  margin: 0;
+  padding: 24px;
+  color: #0b1220;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+  max-width: var(--maxwidth);
+  margin: 0 auto;
+  background: var(--card);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(9, 30, 66, 0.08);
+  border: 1px solid var(--border);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--accent);
+}
+.subtitle {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.form-section {
+  margin-top: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #081424;
+}
+
+input[type='text'],
+input[type='date'],
+input[type='number'],
+textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 38px;
+}
+
+textarea {
+  min-height: 72px;
+  max-height: 260px;
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.86rem;
+  margin-top: 6px;
+}
+
+.actions {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+button:hover {
+  filter: brightness(0.95);
+}
+
+button.secondary {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid var(--border);
+}
+
+.output-section {
+  margin-top: 18px;
+}
+
+.output {
+  white-space: pre-wrap;
+  background: #fbfdff;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px dashed var(--border);
+  min-height: 160px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono',
+    'Courier New', monospace;
+  font-size: 0.94rem;
+}
+
+.summary {
+  margin: 10px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+footer {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+@media (min-width: 760px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  label:nth-last-child(-n + 4) {
+    grid-column: 1 / -1;
+  }
+}

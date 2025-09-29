@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pediatric OT SOAP Note Generator (ASD)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Pediatric OT SOAP Note Generator</h1>
+      <p class="subtitle">Child age 3–4 — ASD focused • Works offline • Print → Save as PDF</p>
+    </header>
+
+    <section class="form-section">
+      <div class="grid">
+        <label>Child’s Name
+          <input id="childName" type="text" placeholder="First Last">
+        </label>
+
+        <label>Date of Session
+          <input id="date" type="date">
+        </label>
+
+        <label>Therapist Name
+          <input id="therapist" type="text" placeholder="OT Name, Credentials">
+        </label>
+
+        <label>Session Duration (minutes)
+          <input id="duration" type="number" min="0" value="45">
+        </label>
+
+        <label>ICD-10 Codes (comma or newline separated)
+          <textarea id="icd" placeholder="e.g., F84.0, F82, Z74.1"></textarea>
+        </label>
+
+        <label>CPT Codes (one per line). Examples:
+          <div class="muted">97530 x 2  &nbsp;  OR  &nbsp; 97530 x 2 units (30 min)  &nbsp;  OR  &nbsp; 97530, units:2</div>
+          <textarea id="cpt" placeholder="e.g.
+97530 x 2
+97535 x 1"></textarea>
+        </label>
+
+        <label>S — Subjective
+          <textarea id="subjective" placeholder="Caregiver report, child status on arrival"></textarea>
+        </label>
+
+        <label>O — Objective
+          <textarea id="objective" placeholder="Activities, assistance level, measurable performance"></textarea>
+        </label>
+
+        <label>A — Assessment
+          <textarea id="assessment" placeholder="Clinical interpretation, progress toward goals"></textarea>
+        </label>
+
+        <label>P — Plan
+          <textarea id="plan" placeholder="Frequency, home program, next session focus"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn">Generate SOAP Note</button>
+        <button id="printBtn" title="Opens Print → Save as PDF">Download / Print (Save as PDF)</button>
+        <button id="clearBtn" class="secondary">Clear Form</button>
+      </div>
+    </section>
+
+    <section class="output-section">
+      <h2>Generated SOAP Note</h2>
+      <div id="summary" class="summary muted"></div>
+      <pre id="output" class="output" aria-live="polite"></pre>
+    </section>
+
+    <footer>
+      <small>Privacy note: the site runs entirely in your browser. Nothing is uploaded to GitHub. Do NOT commit client notes to the repo.</small>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
