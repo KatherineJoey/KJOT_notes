@@ -11,7 +11,10 @@
    Returns array of objects: {code, units, minutes, raw}
 --------------------------*/
 function parseCPT(text) {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   const entries = [];
 
   for (let raw of lines) {
@@ -64,29 +67,30 @@ function parseCPT(text) {
    Build the SOAP note text
 --------------------------*/
 function buildNote(fields) {
-  const {
-    childName, date, therapist, duration,
-    icd, cptRaw, S, O, A, P
-  } = fields;
+  const { childName, date, therapist, duration, icd, cptRaw, S, O, A, P } =
+    fields;
 
   const cptEntries = parseCPT(cptRaw);
-  let totalMinutes = cptEntries.reduce((s,e)=> s + (e.minutes || 0), 0);
+  let totalMinutes = cptEntries.reduce((s, e) => s + (e.minutes || 0), 0);
   // If totalMinutes is 0, fallback to provided duration
   if (totalMinutes === 0 && duration) totalMinutes = Number(duration);
 
   const totalUnits = Math.ceil(totalMinutes / 15);
 
   // Create CPT summary lines
-  const cptSummaryLines = cptEntries.map(e=>{
+  const cptSummaryLines = cptEntries.map((e) => {
     if (e.units > 0) return `${e.code} x ${e.units} unit(s) (${e.minutes} min)`;
     return `${e.raw} (unparsed)`;
   });
 
-  const icdPretty = icd.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean).join(', ');
+  const icdPretty = icd
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(', ');
 
   // Note template
-  const note =
-`Pediatric Occupational Therapy SOAP Note
+  const note = `Occupational Therapy SOAP Note
 Child: ${childName || '________________'}
 Date: ${date || '____/__/__'}
 Therapist: ${therapist || '________________'}
@@ -111,7 +115,9 @@ ${A || '________________'}
 P — Plan:
 ${P || '________________'}
 
-Therapist Signature: _________________________      Date: ${date || '____/__/__'}`;
+Therapist Signature: _________________________      Date: ${
+    date || '____/__/__'
+  }`;
 
   return { note, cptEntries, totalMinutes, totalUnits, icdPretty };
 }
@@ -135,10 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
     summary: document.getElementById('summary'),
     generateBtn: document.getElementById('generateBtn'),
     printBtn: document.getElementById('printBtn'),
-    clearBtn: document.getElementById('clearBtn')
+    clearBtn: document.getElementById('clearBtn'),
   };
 
-  function gatherFields(){
+  function gatherFields() {
     return {
       childName: els.childName.value.trim(),
       date: els.date.value,
@@ -149,17 +155,20 @@ document.addEventListener('DOMContentLoaded', () => {
       S: els.subjective.value.trim(),
       O: els.objective.value.trim(),
       A: els.assessment.value.trim(),
-      P: els.plan.value.trim()
+      P: els.plan.value.trim(),
     };
   }
 
   els.generateBtn.addEventListener('click', () => {
     const fields = gatherFields();
-    const { note, cptEntries, totalMinutes, totalUnits, icdPretty } = buildNote(fields);
+    const { note, cptEntries, totalMinutes, totalUnits, icdPretty } =
+      buildNote(fields);
 
     // Show summary
     const codesCount = cptEntries.length;
-    const parsedCount = cptEntries.filter(e => e.units>0 || e.minutes>0).length;
+    const parsedCount = cptEntries.filter(
+      (e) => e.units > 0 || e.minutes > 0
+    ).length;
     els.summary.innerText = `CPT entries: ${codesCount} (parsed: ${parsedCount}). Calculated total: ${totalMinutes} min — ${totalUnits} unit(s).`;
 
     els.output.textContent = note;
@@ -182,7 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Clear form
   els.clearBtn.addEventListener('click', () => {
-    if (!confirm('Clear the form? This will remove all entries in the form fields.')) return;
+    if (
+      !confirm(
+        'Clear the form? This will remove all entries in the form fields.'
+      )
+    )
+      return;
     els.childName.value = '';
     els.date.value = '';
     els.therapist.value = '';
