@@ -1,158 +1,80 @@
-/* style.css — Pediatric OT SOAP Note Generator */
-
-:root {
-  --bg: #fbfcfd;
-  --card: #ffffff;
-  --accent: #0b76d1;
-  --muted: #6b7280;
-  --border: #e6e9ee;
-  --maxwidth: 900px;
-  --radius: 8px;
-}
-
-* {
-  box-sizing: border-box;
-}
 body {
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto,
-    'Helvetica Neue', Arial;
-  background: linear-gradient(180deg, #f7fbff 0%, var(--bg) 100%);
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
   margin: 0;
-  padding: 24px;
-  color: #0b1220;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
 }
 
 .container {
-  max-width: var(--maxwidth);
-  margin: 0 auto;
-  background: var(--card);
+  max-width: 800px;
+  margin: 30px auto;
+  background: #fff;
   padding: 20px;
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(9, 30, 66, 0.08);
-  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-header h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  color: var(--accent);
-}
-.subtitle {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.form-section {
-  margin-top: 16px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 label {
+  font-weight: bold;
   display: block;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #081424;
+  margin-top: 15px;
 }
 
 input[type='text'],
 input[type='date'],
-input[type='number'],
+select,
 textarea {
   width: 100%;
-  padding: 8px 10px;
-  margin-top: 6px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  font-size: 0.95rem;
-  resize: vertical;
-  min-height: 38px;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 textarea {
-  min-height: 72px;
-  max-height: 260px;
+  min-height: 70px;
 }
 
-.muted {
-  color: var(--muted);
-  font-weight: 400;
-  font-size: 0.86rem;
-  margin-top: 6px;
-}
-
-.actions {
-  margin-top: 14px;
+.cpt-item {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.cpt-item select {
+  width: 150px;
+}
+
+.total-time {
+  margin-top: 15px;
+  font-size: 16px;
+  text-align: right;
+}
+
+#icdCodes label {
+  display: block;
+  font-weight: normal;
 }
 
 button {
-  background: var(--accent);
-  color: #fff;
+  margin-top: 20px;
+  background: #1976d2;
+  color: white;
+  padding: 12px;
   border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
+  width: 100%;
+  font-size: 16px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.95rem;
+  border-radius: 6px;
 }
 
 button:hover {
-  filter: brightness(0.95);
-}
-
-button.secondary {
-  background: #f3f4f6;
-  color: #111827;
-  border: 1px solid var(--border);
-}
-
-.output-section {
-  margin-top: 18px;
-}
-
-.output {
-  white-space: pre-wrap;
-  background: #fbfdff;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px dashed var(--border);
-  min-height: 160px;
-  overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono',
-    'Courier New', monospace;
-  font-size: 0.94rem;
-}
-
-.summary {
-  margin: 10px 0;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: #fff;
-  border: 1px solid var(--border);
-}
-
-footer {
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 0.82rem;
-  text-align: center;
-}
-@media (min-width: 760px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  label:nth-last-child(-n + 4) {
-    grid-column: 1 / -1;
-  }
+  background: #145da0;
 }

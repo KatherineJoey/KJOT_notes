@@ -1,213 +1,141 @@
-// script.js — SOAP generator with CPT parsing & print (works offline)
-
-/* -------------------------
-   Helpers: parse CPT entries
-   Accepts lines like:
-     97530 x 2
-     97535 x 1 unit
-     97530, units:2
-     97530 x 2 units (30 min)
-   If units not provided and minutes present in parentheses, it will compute units = minutes / 15.
-   Returns array of objects: {code, units, minutes, raw}
---------------------------*/
-function parseCPT(text) {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-  const entries = [];
-
-  for (let raw of lines) {
-    // Try patterns
-    // Pattern 1: code x number
-    let m = raw.match(/(\d{5})\s*[x×]\s*(\d+)/i);
-    if (m) {
-      const code = m[1];
-      const units = parseInt(m[2], 10);
-      entries.push({ code, units, minutes: units * 15, raw });
-      continue;
-    }
-
-    // Pattern 2: code, units:2
-    m = raw.match(/(\d{5}).*units?\s*[:=]?\s*(\d+)/i);
-    if (m) {
-      const code = m[1];
-      const units = parseInt(m[2], 10);
-      entries.push({ code, units, minutes: units * 15, raw });
-      continue;
-    }
-
-    // Pattern 3: code and minutes like (30 min)
-    m = raw.match(/(\d{5}).*\(?\s*(\d{1,3})\s*min\s*\)?/i);
-    if (m) {
-      const code = m[1];
-      const minutes = parseInt(m[2], 10);
-      const units = Math.ceil(minutes / 15);
-      entries.push({ code, units, minutes: units * 15, raw });
-      continue;
-    }
-
-    // Pattern 4: code only (assume 1 unit)
-    m = raw.match(/(\d{5})/);
-    if (m) {
-      const code = m[1];
-      const units = 1;
-      entries.push({ code, units, minutes: 15, raw });
-      continue;
-    }
-
-    // If nothing matched, keep raw as note
-    entries.push({ code: raw, units: 0, minutes: 0, raw });
-  }
-
-  return entries;
-}
-
-/* -------------------------
-   Build the SOAP note text
---------------------------*/
-function buildNote(fields) {
-  const { childName, date, therapist, duration, icd, cptRaw, S, O, A, P } =
-    fields;
-
-  const cptEntries = parseCPT(cptRaw);
-  let totalMinutes = cptEntries.reduce((s, e) => s + (e.minutes || 0), 0);
-  // If totalMinutes is 0, fallback to provided duration
-  if (totalMinutes === 0 && duration) totalMinutes = Number(duration);
-
-  const totalUnits = Math.ceil(totalMinutes / 15);
-
-  // Create CPT summary lines
-  const cptSummaryLines = cptEntries.map((e) => {
-    if (e.units > 0) return `${e.code} x ${e.units} unit(s) (${e.minutes} min)`;
-    return `${e.raw} (unparsed)`;
-  });
-
-  const icdPretty = icd
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .join(', ');
-
-  // Note template
-  const note = `Occupational Therapy SOAP Note
-Child: ${childName || '________________'}
-Date: ${date || '____/__/__'}
-Therapist: ${therapist || '________________'}
-Session Duration (documented): ${duration || '_____'} min
-
-ICD-10 Codes:
-${icdPretty || '________________'}
-
-CPT Codes (calculated):
-${cptSummaryLines.length ? cptSummaryLines.join('\n') : '________________'}
-Total billed time (calculated): ${totalMinutes} min (${totalUnits} unit(s) x 15 min)
-
-S — Subjective:
-${S || '________________'}
-
-O — Objective:
-${O || '________________'}
-
-A — Assessment:
-${A || '________________'}
-
-P — Plan:
-${P || '________________'}
-
-Therapist Signature: _________________________      Date: ${
-    date || '____/__/__'
-  }`;
-
-  return { note, cptEntries, totalMinutes, totalUnits, icdPretty };
-}
-
-/* -------------------------
-   DOM & Event wiring
---------------------------*/
+// script.js — robust CPT/unit handling + total time + PDF generation
 document.addEventListener('DOMContentLoaded', () => {
-  const els = {
-    childName: document.getElementById('childName'),
-    date: document.getElementById('date'),
-    therapist: document.getElementById('therapist'),
-    duration: document.getElementById('duration'),
-    icd: document.getElementById('icd'),
-    cpt: document.getElementById('cpt'),
-    subjective: document.getElementById('subjective'),
-    objective: document.getElementById('objective'),
-    assessment: document.getElementById('assessment'),
-    plan: document.getElementById('plan'),
-    output: document.getElementById('output'),
-    summary: document.getElementById('summary'),
-    generateBtn: document.getElementById('generateBtn'),
-    printBtn: document.getElementById('printBtn'),
-    clearBtn: document.getElementById('clearBtn'),
-  };
+  // Grab elements
+  const cptItems = Array.from(document.querySelectorAll('.cpt-item'));
+  const totalTimeEl = document.getElementById('totalTime');
 
-  function gatherFields() {
-    return {
-      childName: els.childName.value.trim(),
-      date: els.date.value,
-      therapist: els.therapist.value.trim(),
-      duration: els.duration.value,
-      icd: els.icd.value.trim(),
-      cptRaw: els.cpt.value.trim(),
-      S: els.subjective.value.trim(),
-      O: els.objective.value.trim(),
-      A: els.assessment.value.trim(),
-      P: els.plan.value.trim(),
-    };
+  // Safety: if no items found, do nothing
+  if (!cptItems.length) {
+    console.warn('No .cpt-item elements found.');
   }
 
-  els.generateBtn.addEventListener('click', () => {
-    const fields = gatherFields();
-    const { note, cptEntries, totalMinutes, totalUnits, icdPretty } =
-      buildNote(fields);
+  // Attach listeners for each cpt-item (pair checkbox + select within same container)
+  cptItems.forEach((item) => {
+    const checkbox = item.querySelector('.cpt-checkbox');
+    const select = item.querySelector('.unit-select');
 
-    // Show summary
-    const codesCount = cptEntries.length;
-    const parsedCount = cptEntries.filter(
-      (e) => e.units > 0 || e.minutes > 0
-    ).length;
-    els.summary.innerText = `CPT entries: ${codesCount} (parsed: ${parsedCount}). Calculated total: ${totalMinutes} min — ${totalUnits} unit(s).`;
+    if (!checkbox || !select) return; // skip if structure different
 
-    els.output.textContent = note;
+    // initialize select disabled state to match checkbox
+    select.disabled = !checkbox.checked;
 
-    // Update the Session Duration field to match calculation (optional)
-    if (totalMinutes && (!fields.duration || fields.duration == 0)) {
-      els.duration.value = totalMinutes;
+    checkbox.addEventListener('change', () => {
+      select.disabled = !checkbox.checked;
+      // optional: reset to 1 unit when checked if previously disabled
+      if (checkbox.checked && (!select.value || select.value === '0'))
+        select.value = '1';
+      calculateTotalTime();
+    });
+
+    select.addEventListener('change', calculateTotalTime);
+  });
+
+  // Calculates total minutes from selected CPT units (1 unit = 15 min)
+  function calculateTotalTime() {
+    let totalMinutes = 0;
+    cptItems.forEach((item) => {
+      const checkbox = item.querySelector('.cpt-checkbox');
+      const select = item.querySelector('.unit-select');
+
+      if (checkbox && checkbox.checked && select) {
+        const units = parseInt(select.value) || 0;
+        totalMinutes += units * 15;
+      }
+    });
+
+    totalTimeEl.textContent = totalMinutes;
+    return totalMinutes;
+  }
+
+  // initial calc
+  calculateTotalTime();
+
+  // PDF generation
+  document.getElementById('generatePDF').addEventListener('click', () => {
+    // Recalc to be safe
+    const totalMinutes = calculateTotalTime();
+
+    // Collect form values
+    const name = document.getElementById('childName')?.value.trim() || 'Child';
+    const date = document.getElementById('date')?.value || '';
+    const subjective = document.getElementById('subjective')?.value || '';
+    const objective = document.getElementById('objective')?.value || '';
+    const assessment = document.getElementById('assessment')?.value || '';
+    const plan = document.getElementById('plan')?.value || '';
+
+    // Build CPT details
+    const cptDetails = [];
+    cptItems.forEach((item) => {
+      const checkbox = item.querySelector('.cpt-checkbox');
+      const select = item.querySelector('.unit-select');
+      if (checkbox && checkbox.checked && select) {
+        const units = parseInt(select.value) || 0;
+        cptDetails.push(
+          `${checkbox.value} x ${units} unit(s) (${units * 15} min)`
+        );
+      }
+    });
+
+    // ICD codes
+    const icdChecked = Array.from(
+      document.querySelectorAll('#icdCodes input[type="checkbox"]:checked')
+    ).map((cb) => cb.value);
+
+    // Use jspdf from CDN
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+    let y = 40;
+    const leftMargin = 40;
+    const lineHeight = 14;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxLineWidth = pageWidth - leftMargin * 2;
+
+    doc.setFontSize(16);
+    doc.text('OT SOAP Note', leftMargin, y);
+    y += 24;
+
+    doc.setFontSize(11);
+    doc.text(`Child's Name: ${name}`, leftMargin, y);
+    y += lineHeight;
+    doc.text(`Date: ${date}`, leftMargin, y);
+    y += lineHeight;
+    doc.text(`CPT: ${cptDetails.join('; ') || 'N/A'}`, leftMargin, y);
+    y += lineHeight;
+    doc.text(`ICD-10: ${icdChecked.join(', ') || 'N/A'}`, leftMargin, y);
+    y += lineHeight;
+    doc.text(`Total Treatment Time: ${totalMinutes} minutes`, leftMargin, y);
+    y += lineHeight + 6;
+
+    // utility to add multi-line sections
+    function addSection(title, text) {
+      doc.setFont(undefined, 'bold');
+      doc.text(title + ':', leftMargin, y);
+      doc.setFont(undefined, 'normal');
+      y += lineHeight;
+      const lines = doc.splitTextToSize(text || 'N/A', maxLineWidth);
+      doc.text(lines, leftMargin, y);
+      y += lines.length * (lineHeight + 2) + 8;
+
+      // if nearing page bottom, add new page
+      if (y > doc.internal.pageSize.getHeight() - 80) {
+        doc.addPage();
+        y = 40;
+      }
     }
+
+    addSection('S — Subjective', subjective);
+    addSection('O — Objective', objective);
+    addSection('A — Assessment', assessment);
+    addSection('P — Plan', plan);
+
+    // signature placeholder
+    y += 10;
+    doc.text('Therapist Signature: ________________________', leftMargin, y);
+    y += lineHeight;
+    doc.save(`${name.replace(/\s+/g, '_')}_SOAP_Note.pdf`);
   });
 
-  // Print/Download button uses window.print() -> user chooses "Save as PDF"
-  els.printBtn.addEventListener('click', () => {
-    // If output empty, generate automatically
-    if (!els.output.textContent.trim()) {
-      els.generateBtn.click();
-    }
-    // Briefly show a small print-friendly style (the browser handles PDF)
-    window.print();
-  });
-
-  // Clear form
-  els.clearBtn.addEventListener('click', () => {
-    if (
-      !confirm(
-        'Clear the form? This will remove all entries in the form fields.'
-      )
-    )
-      return;
-    els.childName.value = '';
-    els.date.value = '';
-    els.therapist.value = '';
-    els.duration.value = 45;
-    els.icd.value = '';
-    els.cpt.value = '';
-    els.subjective.value = '';
-    els.objective.value = '';
-    els.assessment.value = '';
-    els.plan.value = '';
-    els.output.textContent = '';
-    els.summary.innerText = '';
-  });
+  // Helpful debug: show console counts
+  console.info(`CPT items found: ${cptItems.length}`);
 });

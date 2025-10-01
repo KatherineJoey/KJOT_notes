@@ -4,85 +4,87 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Occupational Therapy Session Notes</title>
+    <title>OT SOAP Note Generator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <main class="container">
-        <header>
-            <h1>Occupational Therapy SOAP Notes</h1>
-            <p class="subtitle">Child age 3–4 — ASD focused • Works offline • Print → Save as PDF</p>
-        </header>
+    <div class="container">
+        <h1>OT SOAP Note Generator</h1>
 
-        <section class="form-section">
-            <div class="grid">
-                <label>Child’s Name
-                    <input id="childName" type="text" placeholder="First Last">
-                </label>
+        <label for="childName">Child's Name (PDF only):</label>
+        <input type="text" id="childName" placeholder="Enter child's name" />
 
-                <label>Date of Session
-                    <input id="date" type="date">
-                </label>
+        <label for="date">Date of Session:</label>
+        <input type="date" id="date" />
 
-                <label>Therapist Name
-                    <input id="therapist" type="text" placeholder="OT Name, Credentials">
-                </label>
-
-                <label>Session Duration (minutes)
-                    <input id="duration" type="number" min="0" value="45">
-                </label>
-
-                <label>ICD-10 Codes (comma or newline separated)
-                    <textarea id="icd" placeholder="e.g., F84.0, F82, Z74.1"></textarea>
-                </label>
-
-                <label>CPT Codes (one per line). Examples:
-                    <div class="muted">97530 x 2 &nbsp; OR &nbsp; 97530 x 2 units (30 min) &nbsp; OR &nbsp; 97530,
-                        units:2</div>
-                    <textarea id="cpt" placeholder="e.g.
-97530 x 2
-97535 x 1"></textarea>
-                </label>
-
-                <label>S — Subjective
-                    <textarea id="subjective" placeholder="Caregiver report, child status on arrival"></textarea>
-                </label>
-
-                <label>O — Objective
-                    <textarea id="objective"
-                        placeholder="Activities, assistance level, measurable performance"></textarea>
-                </label>
-
-                <label>A — Assessment
-                    <textarea id="assessment" placeholder="Clinical interpretation, progress toward goals"></textarea>
-                </label>
-
-                <label>P — Plan
-                    <textarea id="plan" placeholder="Frequency, home program, next session focus"></textarea>
-                </label>
+        <label>CPT Codes:</label>
+        <div id="cptCodes">
+            <div class="cpt-item">
+                <label><input type="checkbox" class="cpt-checkbox" value="97530" /> 97530 – Therapeutic
+                    Activities</label>
+                <select class="unit-select" disabled>
+                    <option value="1">x1 unit (15 min)</option>
+                    <option value="2">x2 units (30 min)</option>
+                    <option value="3">x3 units (45 min)</option>
+                </select>
             </div>
 
-            <div class="actions">
-                <button id="generateBtn">Generate SOAP Note</button>
-                <button id="printBtn" title="Opens Print → Save as PDF">Download / Print (Save as PDF)</button>
-                <button id="clearBtn" class="secondary">Clear Form</button>
+            <div class="cpt-item">
+                <label><input type="checkbox" class="cpt-checkbox" value="97535" /> 97535 – Self-care/Home Mgmt
+                    Training</label>
+                <select class="unit-select" disabled>
+                    <option value="1">x1 unit (15 min)</option>
+                    <option value="2">x2 units (30 min)</option>
+                    <option value="3">x3 units (45 min)</option>
+                </select>
             </div>
-        </section>
 
-        <section class="output-section">
-            <h2>Generated SOAP Note</h2>
-            <div id="summary" class="summary muted"></div>
-            <pre id="output" class="output" aria-live="polite"></pre>
-        </section>
+            <div class="cpt-item">
+                <label><input type="checkbox" class="cpt-checkbox" value="97112" /> 97112 – Neuromuscular
+                    Re-education</label>
+                <select class="unit-select" disabled>
+                    <option value="1">x1 unit (15 min)</option>
+                    <option value="2">x2 units (30 min)</option>
+                    <option value="3">x3 units (45 min)</option>
+                </select>
+            </div>
 
-        <footer>
-            <small>Privacy note: the site runs entirely in your browser. Nothing is uploaded to GitHub. Do NOT commit
-                client notes to the repo.</small>
-        </footer>
-    </main>
+            <!-- add more CPT items the same way if needed -->
+        </div>
 
+        <div class="total-time">
+            <strong>Total Treatment Time:</strong> <span id="totalTime">0</span> minutes
+        </div>
+
+        <label>ICD-10 Codes (select up to 4):</label>
+        <div id="icdCodes">
+            <label><input type="checkbox" value="F84.0" /> F84.0 – Autism Spectrum Disorder</label>
+            <label><input type="checkbox" value="R62.0" /> R62.0 – Delayed milestone in childhood</label>
+            <label><input type="checkbox" value="F82" /> F82 – Specific developmental disorder of motor function</label>
+            <label><input type="checkbox" value="Z73.4" /> Z73.4 – Inadequate social skills</label>
+        </div>
+
+        <label for="subjective">Subjective:</label>
+        <textarea id="subjective"></textarea>
+
+        <label for="objective">Objective:</label>
+        <textarea id="objective"></textarea>
+
+        <label for="assessment">Assessment:</label>
+        <textarea id="assessment"></textarea>
+
+        <label for="plan">Plan:</label>
+        <textarea id="plan"></textarea>
+
+        <button id="generatePDF">💾 Generate PDF</button>
+    </div>
+
+    <!-- jspdf CDN (must come before your script) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- your script (no import statements inside) -->
     <script src="script.js"></script>
+
 </body>
 
 </html>
